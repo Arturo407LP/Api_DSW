@@ -16,9 +16,9 @@ class CreatePostShopPivotTable extends Migration
         Schema::create('post_shop', function (Blueprint $table) {
             $table->unsignedBigInteger('post_id')->index();
             $table->foreign('post_id')->references('id')->on('posts')->onDelete('cascade');
-            $table->unsignedBigInteger('shop_id')->index();
-            $table->foreign('shop_id')->references('users_id')->on('shops')->onDelete('cascade');
-            $table->primary(['post_id', 'shop_id']);
+            $table->unsignedBigInteger('shop_users_id')->index();
+            $table->foreign('shop_users_id')->references('users_id')->on('shops')->onDelete('cascade');
+            $table->primary(['post_id', 'shop_users_id']);
         });
     }
 

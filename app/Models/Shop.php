@@ -13,6 +13,8 @@ class Shop extends Model
         return $this->belongsToMany(Post::class);
     }
 
+    protected $primaryKey = 'users_id';
+
     protected $fillable = [
         'users_id',
         'nombre',

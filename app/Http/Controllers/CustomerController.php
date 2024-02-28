@@ -129,7 +129,8 @@ class CustomerController extends Controller
             $user = User::find($id);
             $user->update($request->all());
 
-            $customer = Customer::update($request->all());
+            $customer = Customer::find($id);
+            $customer->update($request->all());
 
             return response()->json([
                 'status' => true,
@@ -154,7 +155,8 @@ class CustomerController extends Controller
             $user = User::find($id);
             $user->delete();
 
-            $customer = DB::table('customers')->where('users_id', '=', $id)->delete();
+            $customer = Customer::find($id);
+            $customer->delete();
 
             return response()->json([
                 'status' => true,

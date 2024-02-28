@@ -13,28 +13,26 @@ class PostsController extends Controller
      */
     public function index()
     {
-        $listadoPosts = Post::all();
 
-        $posts = [];
+        $listadoPosts = DB::table('posts')
+        ->join('posts_types', 'posts.posts_types_id', '=', 'posts_types.id')
+        ->select(
+            'posts.id', 'posts.titulo', 'posts.descripcion', 'posts.imagen', DB::raw('posts_types.nombre as tipo_publicacion'),
+            'fecha_publicacion', 'posts.fecha_inicio', 'posts.fecha_fin', 'posts.activo'
+        )
+        ->get();
 
         foreach ($listadoPosts as $post) {
-            $data = DB::table('posts')
-                ->join('posts_types', 'posts.posts_types_id', '=', 'posts_types.id')
-                ->select(
-                    'posts.id', 'posts.titulo', 'posts.descripcion', 'posts.imagen', DB::raw('posts_types.nombre as tipo_publicacion'),
-                    'fecha_publicacion', 'posts.fecha_inicio', 'posts.fecha_fin', 'posts.activo'
-                )
-                ->where('posts_types.id', '=', $post->posts_types_id)
-                ->get();
-
-            array_push($posts, $data);
+            $post->shops = DB::table("shops")
+            ->join('post_shop', 'post_shop.shop_users_id', '=', 'shops.users_id')
+            ->select('post_shop.shop_users_id', 'shops.nombre')
+            ->where('post_shop.shop_users_id', '=', $post->id)
+            ->get();
         }
-
-
 
         return response()->json([
             'status' => true,
-            'data' => $posts
+            'data' => $listadoPosts
         ], 200);
     }
 
@@ -52,11 +50,13 @@ class PostsController extends Controller
     {
         $post = Post::create($request->all());
         
-
-        foreach ($request->shop_id as $shop_id) {
-            $post->shops()->attach($shop_id);
+        foreach ($request->shops_id as $shops_id) {
+            $post->shops()->attach($shops_id);
         }
 
+        foreach ($request->tags_id as $tags_id) {
+            $post->tags()->attach($tags_id);
+        }
 
         return response()->json([
             'status' => true,

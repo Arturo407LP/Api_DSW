@@ -16,26 +16,14 @@ class ShopsController extends Controller
      */
     public function index()
     {
-        $listadoCustomers = Customer::all();
-
-        $users = [];
-
-        foreach ($listadoCustomers as $user) {
-            $data = DB::table('shops')
-                ->join('users', 'customers.users_id', '=', 'users.id')
-                ->join('municipalities', 'users.municipality_id', '=', 'municipalities.id')
-                ->select(
-                    'users.id', DB::raw('users.name as nombre_usuario'), 'customers.nombre', 'customers.apellidos',
-                    'users.email',
-                    'customers.sexo',
-                    DB::raw('municipalities.nombre as municipio'),
-                    'users.phone',
-                    'customers.fecha_nacimiento'
-                )
-                ->get();
-
-            array_push($users, $data);
-        }
+        $users = DB::table('shops')
+            ->join('users', 'shops.users_id', '=', 'users.id')
+            ->join('municipalities', 'users.municipality_id', '=', 'municipalities.id')
+            ->select(
+                'users.id', DB::raw('users.name as Username'), 'users.email', 'users.phone', 'shops.nombre', 'users.email', 'shops.direccion',
+                'shops.descripcion', DB::raw('municipalities.nombre as municipio'),
+            )
+            ->get();
 
         return response()->json([
             'status' => true,
@@ -65,7 +53,7 @@ class ShopsController extends Controller
             ]);
 
             try {
-            
+
                 $shop = Shop::create([
                     'users_id' => $user->id,
                     'nombre' => $request->nombre,
@@ -85,7 +73,7 @@ class ShopsController extends Controller
                 $user->delete();
                 return response()->json([
                     'status' => true,
-                    'message' => "Erro al crear la tienda",
+                    'message' => "Error al crear la tienda",
                     'error' => throw $th,
                 ], 400);
             }
@@ -123,8 +111,11 @@ class ShopsController extends Controller
     public function update(Request $request, string $id)
     {
         try {
-            $user = Customer::find($id);
+            $user = User::find($id);
             $user->update($request->all());
+
+            $shops = Shop::find($id);
+            $shops->update($request->all());
 
             return response()->json([
                 'status' => true,
@@ -135,6 +126,7 @@ class ShopsController extends Controller
             return response()->json([
                 'status' => true,
                 'message' => 'Error',
+                'error' => throw $th
             ], 400);
         }
     }
@@ -148,7 +140,8 @@ class ShopsController extends Controller
             $user = User::find($id);
             $user->delete();
 
-            $customer = DB::table('customers')->where('users_id', '=', $id)->delete();
+            $shops = Shop::find($id);
+            $shops->delete();
 
             return response()->json([
                 'status' => true,
@@ -160,7 +153,7 @@ class ShopsController extends Controller
                 'status' => true,
                 'message' => 'Cliente no encontrado',
                 'error' => throw $th
-            ], 404);
+            ], 400);
         }
     }
 }

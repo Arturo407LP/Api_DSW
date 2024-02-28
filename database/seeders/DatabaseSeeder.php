@@ -23,6 +23,11 @@ class DatabaseSeeder extends Seeder
 
         \App\Models\Category::factory(3)->create();
 
+        \App\Models\Tag::factory(3)->create();
+
+        \App\Models\Posts_Type::factory(3)->create();
+
+
         \App\Models\User::factory()->create([
             'name' => 'Admin',
             'email' => 'test@example.com',

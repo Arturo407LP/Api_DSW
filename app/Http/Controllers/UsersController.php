@@ -13,20 +13,13 @@ class UsersController extends Controller
      */
     public function index()
     {
-        $listadoUsers = User::all();
 
-        $users = [];
-
-        foreach ($listadoUsers as $user) {
-            $data = DB::table('users')
-                ->join('municipalities', 'users.municipality_id', '=', 'municipalities.id')
-                ->select('users.id', 'users.name', 'users.email', DB::raw('municipalities.nombre as municipio'), 'users.phone')
-                ->where('municipalities.id', '=', $user->municipality_id)
-                ->get();
-
-            array_push($users, $data);
-        }
-
+        $users = DB::table('users')
+            ->join('municipalities', 'users.municipality_id', '=', 'municipalities.id')
+            ->select('users.id', 'users.name', 'users.email', DB::raw('municipalities.nombre as municipio'), 'users.phone')
+            ->orderBy('users.id')
+            ->get();
+ 
         return response()->json([
             'status' => true,
             'data' => $users

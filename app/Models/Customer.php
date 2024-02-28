@@ -9,6 +9,8 @@ class Customer extends Model
 {
     use HasFactory;
 
+    protected $primaryKey = 'users_id';
+
     protected $fillable = [
         'users_id',
         'nombre',
