@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StorePostRequest;
 use App\Models\Post;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -26,7 +27,13 @@ class PostsController extends Controller
             $post->shops = DB::table("shops")
             ->join('post_shop', 'post_shop.shop_users_id', '=', 'shops.users_id')
             ->select('post_shop.shop_users_id', 'shops.nombre')
-            ->where('post_shop.shop_users_id', '=', $post->id)
+            ->where('post_shop.post_id', '=', $post->id)
+            ->get();
+
+            $post->tags = DB::table("tags")
+            ->join('post_tag', 'post_tag.tag_id', '=', 'tags.id')
+            ->select('post_tag.tag_id', 'tags.nombre')
+            ->where('post_tag.post_id', '=', $post->id)
             ->get();
         }
 
@@ -46,7 +53,7 @@ class PostsController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StorePostRequest $request)
     {
         $post = Post::create($request->all());
         
@@ -88,6 +95,10 @@ class PostsController extends Controller
             $post = Post::find($id);
             $post->update($request->all());
 
+            $post->shops()->sync($request->shops_id);
+            $post->tags()->sync($request->tags_id);
+
+
             return response()->json([
                 'status' => true,
                 'message' => 'Actividad modificada',
@@ -109,6 +120,12 @@ class PostsController extends Controller
         try {
             $post = Post::find($id);
             $post->delete();
+
+            $post_shop = DB::table('post_shop')->where('post_id', '=', $id);
+            $post_shop->delete();
+            $post_tag = DB::table('post_tag')->where('post_id', '=', $id);
+            $post_tag->delete();
+
 
             return response()->json([
                 'status' => true,
