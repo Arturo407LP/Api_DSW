@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreCustomerRequest;
+use App\Http\Requests\UpdateCustomerRequest;
 use App\Models\Customer;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -9,6 +11,13 @@ use Illuminate\Support\Facades\DB;
 
 class CustomerController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('can:SeeCustomer')->only('index');
+        $this->middleware('can:EditCustomer')->only('index', 'store', 'update', 'destroy');
+
+    }
+
     /**
      * Display a listing of the resource.
      */
@@ -54,7 +63,7 @@ class CustomerController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreCustomerRequest $request)
     {
         try {
             $user = User::create([
@@ -77,7 +86,7 @@ class CustomerController extends Controller
                 return response()->json([
                     'status' => true,
                     'message' => 'Nuevo cliente creado',
-                    'id_actividad' => $customer->users_id
+                    'id_actividad' => $user->id
                 ], 200);
 
             } catch (\Throwable $th) {
@@ -90,12 +99,6 @@ class CustomerController extends Controller
                 ], 400);
 
             }
-
-
-            return response()->json([
-                'status' => true,
-                'message' => 'Nuevo cliente creado',
-            ], 200);
 
         } catch (\Throwable $th) {
             return response()->json([
@@ -122,7 +125,7 @@ class CustomerController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(UpdateCustomerRequest $request, string $id)
     {
         try {
 
@@ -153,9 +156,9 @@ class CustomerController extends Controller
     {
         try {
             $user = User::find($id);
-            $user->delete();
-
             $customer = Customer::find($id);
+            
+            $user->delete();
             $customer->delete();
 
             return response()->json([

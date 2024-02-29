@@ -3,12 +3,22 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StorePostRequest;
+use App\Http\Requests\UpdatePostRequest;
 use App\Models\Post;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Spatie\Permission\Middlewares\RoleMiddleware;
+
 
 class PostsController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('can:SeePost')->only('index');
+        $this->middleware('can:EditPost')->only('index', 'store', 'update', 'destroy');
+
+    }
+
     /**
      * Display a listing of the resource.
      */
@@ -55,21 +65,45 @@ class PostsController extends Controller
      */
     public function store(StorePostRequest $request)
     {
-        $post = Post::create($request->all());
-        
-        foreach ($request->shops_id as $shops_id) {
-            $post->shops()->attach($shops_id);
-        }
+        try{
+            $post = Post::create($request->all());
+           
+            try {
+                foreach ($request->shops_id as $shops_id) {
+                    $post->shops()->attach($shops_id);
+                }
+    
+                foreach ($request->tags_id as $tags_id) {
+                    $post->tags()->attach($tags_id);
+                }
+            } catch (\Throwable $th) {
 
-        foreach ($request->tags_id as $tags_id) {
-            $post->tags()->attach($tags_id);
-        }
+                $post = Post::find($post->id);
+                $post->delete();
+    
+                $post_shop = DB::table('post_shop')->where('post_id', '=', $post->id);
+                $post_shop->delete();
+                $post_tag = DB::table('post_tag')->where('post_id', '=', $post->id);
+                $post_tag->delete();
 
-        return response()->json([
-            'status' => true,
-            'message' => 'Nueva actividad creada',
-            'id_actividad' => $post->id
-        ], 200);
+                return response()->json([
+                    'status' => false,
+                    'error' => throw $th
+                ], 404);
+            }
+            
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Nueva actividad creada',
+                'id_actividad' => $post->id
+            ], 200);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status' => false,
+                'error' => throw $th
+            ], 500);
+        }
     }
 
     /**
@@ -89,7 +123,7 @@ class PostsController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(UpdatePostRequest $request, string $id)
     {
         try {
             $post = Post::find($id);
@@ -107,7 +141,7 @@ class PostsController extends Controller
         } catch (\Throwable $th) {
             return response()->json([
                 'status' => true,
-                'message' => 'Error',
+                'message' => throw $th,
             ], 400);
         }
     }
@@ -135,7 +169,7 @@ class PostsController extends Controller
         } catch (\Throwable $th) {
             return response()->json([
                 'status' => true,
-                'message' => 'Actividad no encontrada',
+                'message' => throw $th,
             ], 404);
         }
     }

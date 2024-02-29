@@ -7,6 +7,8 @@ use App\Http\Controllers\ShopsController;
 use App\Http\Controllers\UsersController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Spatie\Permission\Middlewares\RoleMiddleware;
+
 
 /*
 |--------------------------------------------------------------------------

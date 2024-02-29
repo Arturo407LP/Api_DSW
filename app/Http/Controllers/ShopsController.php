@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\storeShopRequest;
+use App\Http\Requests\UpdateShopRequest;
 use App\Models\Customer;
 use App\Models\Shop;
 use App\Models\Token;
@@ -11,6 +13,13 @@ use Illuminate\Support\Facades\DB;
 
 class ShopsController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('can:SeeShop')->only('index');
+        $this->middleware('can:EditShop')->only('index', 'store', 'update', 'destroy');
+
+    }
+
     /**
      * Display a listing of the resource.
      */
@@ -41,7 +50,7 @@ class ShopsController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(storeShopRequest $request)
     {
         try {
             $user = User::create([
@@ -108,7 +117,7 @@ class ShopsController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(UpdateShopRequest $request, string $id)
     {
         try {
             $user = User::find($id);
