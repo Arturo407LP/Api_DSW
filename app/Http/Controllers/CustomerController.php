@@ -15,7 +15,6 @@ class CustomerController extends Controller
     {
         $this->middleware('can:SeeCustomer')->only('index');
         $this->middleware('can:EditCustomer')->only('index', 'store', 'update', 'destroy');
-
     }
 
     /**
@@ -23,12 +22,7 @@ class CustomerController extends Controller
      */
     public function index()
     {
-        $listadoCustomers = Customer::all();
-
-        $users = [];
-
-        foreach ($listadoCustomers as $user) {
-            $data = DB::table('customers')
+        $listadoCustomers = DB::table('customers')
                 ->join('users', 'customers.users_id', '=', 'users.id')
                 ->join('municipalities', 'users.municipality_id', '=', 'municipalities.id')
                 ->select(
@@ -44,12 +38,11 @@ class CustomerController extends Controller
                 )
                 ->get();
 
-            array_push($users, $data);
-        }
+        
 
         return response()->json([
             'status' => true,
-            'data' => $users
+            'data' => $listadoCustomers
         ], 200);
     }
 
@@ -157,7 +150,7 @@ class CustomerController extends Controller
         try {
             $user = User::find($id);
             $customer = Customer::find($id);
-            
+
             $user->delete();
             $customer->delete();
 
